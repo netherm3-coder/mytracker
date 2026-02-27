@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кімната Трофеїв</title>
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* Змінні для Темної теми */
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #10b981;
+            --danger: #f43f5e;
+            --danger-hover: #e11d48;
+            --highlight: #f59e0b;
+            --border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --glass-blur: blur(12px);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Змінні для Світлої теми */
+        [data-theme="light"] {
+            --bg-color: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --highlight: #d97706;
+            --border: rgba(0, 0, 0, 0.05);
+            --input-bg: rgba(241, 245, 249, 0.8);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        body {
+            font-family: 'Nunito', system-ui, sans-serif;
+            background: radial-gradient(circle at top left, var(--bg-color), var(--bg-color) 80%), var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: var(--accent);
+            filter: blur(150px);
+            opacity: 0.15;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -100px;
+            left: -100px;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: var(--success);
+            filter: blur(150px);
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            z-index: 1;
+        }
+
+        .header-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: var(--text-main);
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+            padding-left: 50px;
+            letter-spacing: -0.5px;
+        }
+
+        h1 span {
+            color: var(--highlight);
+        }
+
+        .theme-btn {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 1.3rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .theme-btn:hover {
+            transform: translateY(-3px) rotate(10deg);
+            border-color: var(--accent);
+        }
+
+        .status-bar {
+            text-align: center;
+            font-size: 13px;
+            margin-bottom: 25px;
+            color: var(--success);
+            font-weight: 600;
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            border: 1px solid var(--border);
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        /* --- НОВЕ: П'єдестал Рекордів --- */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .pedestal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .record-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(99, 102, 241, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            text-align: center;
+            padding: 20px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .record-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .record-title {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .record-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--highlight);
+            margin: 5px 0;
+            text-shadow: 0 2px 10px rgba(245, 158, 11, 0.2);
+        }
+
+        .record-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Прогрес бар для цілей */
+        .goal-container {
+            margin-top: 15px;
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .goal-btn {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--accent);
+            color: var(--text-main);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .goal-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .progress-bg {
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            transition: width 0.8s ease-out;
+        }
+
+        /* Форми та інпути */
+        label {
+            display: block;
+            margin-top: 15px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 1.05rem;
+            font-family: inherit;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+            background: var(--card-bg);
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+        }
+
+        .time-inputs input {
+            text-align: center;
+        }
+
+        .filter-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .filter-section label {
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        button.primary-btn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 30px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+            font-family: inherit;
+        }
+
+        button.primary-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        /* --- НОВЕ: Вертикальний Таймлайн --- */
+        .timeline-container {
+            position: relative;
+            padding: 10px 0 10px 20px;
+            margin-bottom: 25px;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--accent), transparent);
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            margin-left: 20px;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(5px);
+            border-color: var(--accent);
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -45px;
+            top: 25px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid var(--bg-color);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .timeline-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timeline-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .timeline-ex {
+            font-size: 1rem;
+            color: var(--accent);
+            font-weight: 800;
+        }
+
+        .diff-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            margin-left: 10px;
+        }
+
+        .diff-badge.negative {
+            background: rgba(244, 63, 94, 0.2);
+            color: var(--danger);
+        }
+
+        .btn-del {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-del:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header-box">
+            <h1>Кімната <span>Трофеїв</span></h1>
+            <button id="themeToggle" class="theme-btn">☀️</button>
+        </div>
+        <div id="status" class="status-bar">Підключення до хмари...</div>
+
+        <div class="section-title">🏆 Абсолютні рекорди</div>
+        <div id="pedestalContainer" class="pedestal-grid">
+        </div>
+
+        <div class="card">
+            <div class="section-title" style="margin-bottom: 0;">⚡ Додати новий рекорд</div>
+
+            <label>Вправа</label>
+            <select id="exSelect" onchange="uiLogic()">
+                <option value="Підтягування">Підтягування</option>
+                <option value="Віджимання">Віджимання</option>
+                <option value="Бруси">Бруси</option>
+                <option value="Біг">Біг</option>
+                <option value="custom">Інше...</option>
+            </select>
+
+            <input type="text" id="customEx" placeholder="Введіть назву вправи" style="display:none; margin-top:15px;">
+
+            <label>Дата</label>
+            <input type="date" id="workoutDate">
+
+            <div id="countContainer">
+                <label>Результат (кількість)</label>
+                <input type="number" id="workoutCount" placeholder="0">
+
+                <label>Час виконання (необов'язково)</label>
+                <div class="time-inputs">
+                    <input type="number" id="exMin" placeholder="Хв">
+                    <input type="number" id="exSec" placeholder="Сек" max="59">
+                </div>
+            </div>
+
+            <div id="timeContainer" style="display:none;">
+                <label>Відстань (км)</label>
+                <input type="number" id="runDistance" placeholder="0" step="0.1">
+                <label>Час (хв:сек)</label>
+                <div class="time-inputs">
+                    <input type="number" id="runMin" placeholder="Хв">
+                    <input type="number" id="runSec" placeholder="Сек" max="59">
+                </div>
+            </div>
+            <div id="customResultContainer" style="display:none;">
+                <label>Результат (напр., "6 по 100м" або "50 кг")</label>
+                <input type="text" id="customResultStr" placeholder="Ваш результат">
+
+                <label>Час виконання (необов'язково)</label>
+                <div class="time-inputs">
+                    <input type="number" id="customMin" placeholder="Хв">
+                    <input type="number" id="customSec" placeholder="Сек" max="59">
+                </div>
+            </div>
+
+            <button id="saveBtn" class="primary-btn">Зберегти трофей</button>
+        </div>
+
+        <div class="card filter-section">
+            <label>Історія:</label>
+            <select id="filterSelect" onchange="renderUI()">
+                <option value="all">Усі рекорди</option>
+            </select>
+        </div>
+
+        <div id="timelineContainer" class="timeline-container">
+        </div>
+
+        <div class="card">
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc }
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyApcu3R3CoGMjkLYkbPcMntSg6QLqIX6uE",
+            authDomain: "myworkout-b87bb.firebaseapp.com",
+            projectId: "myworkout-b87bb",
+            storageBucket: "myworkout-b87bb.firebasestorage.app",
+            messagingSenderId: "195021109964",
+            appId: "1:195021109964:web:c2c278ded480c7acfbe069",
+            measurementId: "G-179ZG65WMS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const colRef = collection(db, "workouts");
+
+        const MY_PASSWORD = "65";
+
+        // === ЛОГІКА ТЕМ ===
+        const themeBtn = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('workoutTheme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeBtn.innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('workoutTheme', newTheme);
+            themeBtn.innerText = newTheme === 'dark' ? '☀️' : '🌙';
+            renderUI();
+        });
+
+        document.getElementById('workoutDate').valueAsDate = new Date();
+        let allWorkouts = [];
+        let myChartInstance = null;
+        window.uiLogic = () => {
+            const select = document.getElementById('exSelect').value;
+            const custom = document.getElementById('customEx');
+            const countBox = document.getElementById('countContainer');
+            const timeBox = document.getElementById('timeContainer');
+            const customResBox = document.getElementById('customResultContainer');
+
+            custom.style.display = (select === 'custom') ? 'block' : 'none';
+
+            if (select === 'Біг') {
+                countBox.style.display = 'none';
+                timeBox.style.display = 'block';
+                customResBox.style.display = 'none';
+            } else if (select === 'custom') {
+                countBox.style.display = 'none';
+                timeBox.style.display = 'none';
+                customResBox.style.display = 'block';
+            } else {
+                countBox.style.display = 'block';
+                timeBox.style.display = 'none';
+                customResBox.style.display = 'none';
+            }
+        };
+        window.updateDropdowns = () => {
+            const dbExercises = [...new Set(allWorkouts.map(w => w.exercise))];
+            const baseExercises = ["Підтягування", "Віджимання", "Бруси", "Біг"];
+            const combined = [...new Set([...baseExercises, ...dbExercises])];
+
+            const exSelect = document.getElementById('exSelect');
+            const currentEx = exSelect.value;
+            exSelect.innerHTML = combined.map(ex => `<option value="${ex}">${ex}</option>`).join('') + `<option value="custom">Інше...</option>`;
+            if (combined.includes(currentEx) || currentEx === 'custom') exSelect.value = currentEx;
+
+            const filterSelect = document.getElementById('filterSelect');
+            const currentFilter = filterSelect.value;
+            filterSelect.innerHTML = `<option value="all">Усі рекорди</option>` + combined.map(ex => `<option value="${ex}">${ex}</option>`).join('');
+            if (combined.includes(currentFilter) || currentFilter === 'all') filterSelect.value = currentFilter;
+        };
+
+        // Допоміжна функція для отримання числа з рядка (напр. "15 (2:00)" -> 15, "5.5 км" -> 5.5)
+        function parseValue(valStr) {
+            const num = parseFloat(valStr);
+            return isNaN(num) ? 0 : num;
+        }
+
+        // Функція для встановлення цілі
+        window.setGoal = (exercise) => {
+            const currentGoal = localStorage.getItem('goal_' + exercise) || '';
+            const newGoal = prompt(`Введіть вашу ціль для "${exercise}":`, currentGoal);
+            if (newGoal !== null && newGoal.trim() !== '') {
+                const numGoal = parseFloat(newGoal);
+                if (!isNaN(numGoal) && numGoal > 0) {
+                    localStorage.setItem('goal_' + exercise, numGoal);
+                    renderUI(); // Перемальовуємо UI
+                } else {
+                    alert("Будь ласка, введіть коректне число.");
+                }
+            }
+        };
+
+        // Функція рендеру П'єдесталу (Абсолютні рекорди + Цілі)
+        function renderPedestal() {
+            const container = document.getElementById('pedestalContainer');
+            const exercises = [...new Set(allWorkouts.map(w => w.exercise))];
+
+            if (exercises.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ще немає жодного трофею. Час тренуватись!</div>';
+                return;
+            }
+
+            let html = '';
+            exercises.forEach(ex => {
+                const exWorkouts = allWorkouts.filter(w => w.exercise === ex);
+
+                // Знаходимо максимальний рекорд
+                let maxW = exWorkouts[0];
+                let maxVal = parseValue(maxW.count);
+
+                exWorkouts.forEach(w => {
+                    let val = parseValue(w.count);
+                    if (val > maxVal) { maxVal = val; maxW = w; }
+                });
+
+                // Логіка цілей
+                const goal = localStorage.getItem('goal_' + ex);
+                let goalHTML = `<button class="goal-btn" onclick="setGoal('${ex}')">+ Задати ціль</button>`;
+
+                if (goal) {
+                    const goalNum = parseFloat(goal);
+                    let percent = Math.round((maxVal / goalNum) * 100);
+                    if (percent > 100) percent = 100;
+
+                    goalHTML = `
+                        <div class="goal-header">
+                            <span>Ціль: ${goalNum}</span>
+                            <span>${percent}%</span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-fill" style="width: ${percent}%;"></div>
+                        </div>
+                        <div style="text-align:right; margin-top:5px;">
+                            <button class="goal-btn" style="padding:2px 5px; font-size: 0.65rem;" onclick="setGoal('${ex}')">Змінити</button>
+                        </div>
+                    `;
+                }
+
+                let icon = '🏅';
+                if (ex === 'Біг') icon = '🏃‍♂️';
+                if (ex === 'Підтягування') icon = '🦍';
+                if (ex === 'Віджимання') icon = '🔥';
+
+                html += `
+                    <div class="record-card">
+                        <div class="record-icon">${icon}</div>
+                        <div class="record-title">${ex}</div>
+                        <div class="record-value">${maxW.count}</div>
+                        <div class="record-date">${maxW.date}</div>
+                        <div class="goal-container">${goalHTML}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        window.renderUI = () => {
+            renderPedestal();
+
+            const filterValue = document.getElementById('filterSelect').value;
+            const container = document.getElementById('timelineContainer');
+            container.innerHTML = '';
+
+            const filteredWorkouts = (filterValue === 'all')
+                ? allWorkouts
+                : allWorkouts.filter(w => w.exercise === filterValue);
+
+            if (filteredWorkouts.length === 0) {
+                container.innerHTML = '<div class="empty-state">Записів не знайдено</div>';
+                updateChart(filteredWorkouts, filterValue);
+                return;
+            }
+
+            // Рендер Таймлайну (з підрахунком різниці)
+            filteredWorkouts.forEach((w, index) => {
+                let diffHTML = '';
+
+                // Показуємо різницю ТІЛЬКИ якщо вибрана конкретна вправа і є попередній запис
+                if (filterValue !== 'all' && index < filteredWorkouts.length - 1) {
+                    let prevW = filteredWorkouts[index + 1]; // Наступний в масиві = попередній в часі (бо сортування desc)
+                    let currentVal = parseValue(w.count);
+                    let prevVal = parseValue(prevW.count);
+                    let diff = Math.round((currentVal - prevVal) * 100) / 100; // Округлення для десяткових (км)
+
+                    if (diff > 0) {
+                        diffHTML = `<span class="diff-badge">+${diff}</span>`;
+                    } else if (diff < 0) {
+                        diffHTML = `<span class="diff-badge negative">${diff}</span>`;
+                    } else {
+                        diffHTML = `<span class="diff-badge" style="background:var(--border); color:var(--text-muted);">Без змін</span>`;
+                    }
+                }
+
+                const exLabel = filterValue === 'all' ? `<div class="timeline-ex">${w.exercise}</div>` : '';
+
+                container.innerHTML += `
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-header">
+                            <span class="timeline-date">${w.date}</span>
+                            <button class="btn-del" onclick="deleteEntry('${w.id}')">Видалити</button>
+                        </div>
+                        ${exLabel}
+                        <div class="timeline-content">
+                            <span class="timeline-val">${w.count} ${diffHTML}</span>
+                        </div>
+                    </div>`;
+            });
+
+            updateChart(filteredWorkouts, filterValue);
+        };
+
+        function updateChart(filteredWorkouts, filterValue) {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            if (myChartInstance) myChartInstance.destroy();
+
+            const style = getComputedStyle(document.body);
+            const textColor = style.getPropertyValue('--text-muted').trim() || '#888';
+            const gridColor = style.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.1)';
+            const accentColor = style.getPropertyValue('--accent').trim() || '#6366f1';
+
+            const chartData = [...filteredWorkouts].reverse();
+            let labels = [];
+            let dataPoints = [];
+            let datasetLabel = "";
+
+            if (filterValue === 'all') {
+                datasetLabel = "Трофеїв за день";
+                let dateCounts = {};
+                chartData.forEach(w => { dateCounts[w.date] = (dateCounts[w.date] || 0) + 1; });
+                labels = Object.keys(dateCounts);
+                dataPoints = Object.values(dateCounts);
+            } else {
+                datasetLabel = (filterValue === 'Біг') ? "Відстань (км)" : "Повторення";
+                chartData.forEach(w => {
+                    labels.push(w.date);
+                    dataPoints.push(parseValue(w.count));
+                });
+            }
+
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+            myChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: datasetLabel,
+                        data: dataPoints,
+                        borderColor: accentColor,
+                        backgroundColor: gradient,
+                        borderWidth: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: accentColor,
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: textColor, font: { family: 'Nunito', weight: 'bold' } } },
+                        tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { family: 'Nunito', size: 14 }, bodyFont: { family: 'Nunito', size: 14 }, padding: 12, cornerRadius: 12 }
+                    },
+                    scales: {
+                        x: { ticks: { color: textColor, font: { family: 'Nunito' } }, grid: { color: gridColor, drawBorder: false } },
+                        y: { ticks: { color: textColor, font: { family: 'Nunito' } }, grid: { color: gridColor, drawBorder: false, borderDash: [5, 5] }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        onSnapshot(query(colRef, orderBy("date", "desc")), (snapshot) => {
+            allWorkouts = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            updateDropdowns();
+            renderUI();
+            document.getElementById('status').innerText = "Хмара синхронізована ✅";
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const userPass = prompt("Введіть пароль для додавання рекорду:");
+            if (userPass !== MY_PASSWORD) {
+                alert("Невірний пароль! Зміни не збережено.");
+                return;
+            }
+
+            const select = document.getElementById('exSelect').value;
+            const customName = document.getElementById('customEx').value;
+            const date = document.getElementById('workoutDate').value;
+
+            let exerciseName = (select === 'custom') ? customName : select;
+            let finalResult = "";
+
+            if (select === 'Біг') {
+                const dist = document.getElementById('runDistance').value;
+                const min = document.getElementById('runMin').value || "0";
+                const sec = document.getElementById('runSec').value || "00";
+                if (!dist || (!min && !sec)) { alert("Вкажи відстань та час бігу!"); return; }
+                finalResult = `${dist} км (${min}:${sec.padStart(2, '0')})`;
+            }
+            else if (select === 'custom') {
+                // НОВА ЛОГІКА ДЛЯ "ІНШЕ..."
+                const customRes = document.getElementById('customResultStr').value;
+                const customMin = document.getElementById('customMin').value;
+                const customSec = document.getElementById('customSec').value;
+
+                if (!customRes) { alert("Вкажи результат (напр. '6 по 100м')!"); return; }
+
+                if (customMin || customSec) {
+                    finalResult = `${customRes} (${customMin || "0"}:${(customSec || "0").padStart(2, '0')})`;
+                } else {
+                    finalResult = customRes;
+                }
+            }
+            else {
+                const count = document.getElementById('workoutCount').value;
+                const exMin = document.getElementById('exMin').value;
+                const exSec = document.getElementById('exSec').value;
+                if (!count) { alert("Вкажи кількість повторень!"); return; }
+                if (exMin || exSec) {
+                    finalResult = `${count} (${exMin || "0"}:${(exSec || "0").padStart(2, '0')})`;
+                } else {
+                    finalResult = count;
+                }
+            }
+
+            if (!exerciseName) { alert("Введіть назву вправи!"); return; }
+
+            try {
+                document.getElementById('status').innerText = "Збереження...";
+                await addDoc(colRef, {
+                    exercise: exerciseName, date: date, count: finalResult, createdAt: Date.now()
+                });
+
+                // Очищаємо всі поля після збереження
+                document.getElementById('workoutCount').value = '';
+                document.getElementById('exMin').value = '';
+                document.getElementById('exSec').value = '';
+                document.getElementById('runDistance').value = '';
+                document.getElementById('runMin').value = '';
+                document.getElementById('runSec').value = '';
+                document.getElementById('customEx').value = '';
+                document.getElementById('customResultStr').value = '';
+                document.getElementById('customMin').value = '';
+                document.getElementById('customSec').value = '';
+            } catch (err) { alert("Помилка: " + err.message); }
+        });
+
+        window.deleteEntry = async (id) => {
+            const userPass = prompt("Введіть пароль для видалення запису:");
+            if (userPass !== MY_PASSWORD) { alert("Невірний пароль! Доступ заборонено."); return; }
+            if (confirm("Точно видалити запис?")) {
+                await deleteDoc(doc(db, "workouts", id));
+            }
+        };
+    </script>
+</body>
+
+</html>
